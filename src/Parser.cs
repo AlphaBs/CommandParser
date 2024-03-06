@@ -6,6 +6,7 @@ public static class Parser
     {
         var tokens = Tokenize(input);
         var args = ParseTokens(tokens);
+
         foreach (var arg in args)
         {
             yield return arg;
@@ -14,55 +15,55 @@ public static class Parser
 
     public static IEnumerable<Token> Tokenize(IEnumerable<char> input)
     {
-        ITokenizerStateMachine state = new InitState();
-        Token? token;
+        ITokenizerStateMachine state = TokenizerStates.Init;
         TokenBuilder current = new();
 
-        foreach (char c in input)
+        foreach (char next in input)
         {
-            if (char.IsWhiteSpace(c))
-                state = state.PutSpace(current, c);
-            else if (c == '=')
-                state = state.PutKeyValueDelimiter(current, c);
-            else if (c == '"')
-                state = state.PutQuote(current, c);
+            if (char.IsWhiteSpace(next))
+                state = state.PutSpace(current, next);
+            else if (next == '=')
+                state = state.PutKeyValueSeparator(current, next);
+            else if (next == '"')
+                state = state.PutQuote(current, next);
             else 
-                state = state.PutChar(current, c);
+                state = state.PutChar(current, next);
 
-            if (current.TryGetToken(out token))
-                yield return token!;
+            foreach (var token in current.PopTokens())
+                yield return token;
         }
+
         state.End(current);
-        if (current.TryGetToken(out token))
-            yield return token!;
+        foreach (var token in current.PopTokens())
+                yield return token;
     }
 
     public static IEnumerable<KeyValueArgument> ParseTokens(IEnumerable<Token> tokens)
     {
-        Token? lastKey = null;
-        foreach (var current in tokens)
+        IParserStateMachine state = ParserStates.Init;
+        ArgumentBuilder current = new();
+
+        foreach (var next in tokens)
         {
-            if (lastKey == null && current.Type == TokenType.Key)
+            switch (next.Type)
             {
-                lastKey = current;
+                case TokenType.Key:
+                    state = state.PutKey(current, next.Value);
+                    break;
+                case TokenType.Value:
+                    state = state.PutValue(current, next.Value);
+                    break;
+                case TokenType.KeyValueSeparator:
+                    state = state.PutKeyValueSeparator(current, next.Value);
+                    break;
             }
-            else if (lastKey == null && current.Type == TokenType.Value)
-            {
-                yield return new KeyValueArgument("", current.Value);
-            }
-            else if (lastKey != null && current.Type == TokenType.Key)
-            {
-                yield return new KeyValueArgument(lastKey.Value, null);
-                lastKey = current;
-            }
-            else if (lastKey != null && current.Type == TokenType.Value)
-            {
-                yield return new KeyValueArgument(lastKey.Value, current.Value);
-                lastKey = null;
-            }
+
+            foreach (var arg in current.PopArguments())
+                yield return arg;
         }
 
-        if (lastKey != null)
-            yield return new KeyValueArgument(lastKey.Value, null);
+        state.End(current);
+        foreach (var arg in current.PopArguments())
+            yield return arg;
     }
 }

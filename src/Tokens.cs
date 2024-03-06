@@ -2,49 +2,31 @@ using System.Text;
 
 namespace CommandParser;
 
-public enum TokenType { Key, Value }
+public enum TokenType { Key, Value, KeyValueSeparator }
 public record Token(TokenType Type, string Value);
 
 public class TokenBuilder
 {
+    private readonly Queue<Token> _q = new();
     private readonly StringBuilder sb = new();
 
-    public bool IsCompleted { get; private set; }
-    public TokenType Type { get; set; }
-
     public void Append(char c) => sb.Append(c);
-
     public void Clear() 
     {
         sb.Clear();
-        IsCompleted = false;
     }
 
-    public void CompleteKey()
+    public void Complete(TokenType type)
     {
-        Type = TokenType.Key;
-        IsCompleted = true;
+        _q.Enqueue(new Token(type, sb.ToString()));
+        Clear();
     }
 
-    public void CompleteValue()
+    public IEnumerable<Token> PopTokens()
     {
-        Type = TokenType.Value;
-        IsCompleted = true;
-    }
-
-    public bool TryGetToken(out Token? token) 
-    {
-        if (IsCompleted)
+        while (_q.Any())
         {
-            token = new Token(Type, sb.ToString());
-            IsCompleted = false;
-            sb.Clear();
-            return true;
-        }
-        else
-        {
-            token = null;
-            return false;
+            yield return _q.Dequeue();
         }
     }
 }
