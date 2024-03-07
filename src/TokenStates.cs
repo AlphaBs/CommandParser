@@ -3,6 +3,7 @@ namespace CommandParser;
 interface ITokenizerStateMachine
 {
     ITokenizerStateMachine PutSpace(TokenBuilder current, char next);
+    ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next);
     ITokenizerStateMachine PutChar(TokenBuilder current, char next);
     ITokenizerStateMachine PutKeyValueSeparator(TokenBuilder current, char next);
     ITokenizerStateMachine PutQuote(TokenBuilder current, char next);
@@ -28,6 +29,12 @@ static class TokenizerStates
         public ITokenizerStateMachine PutChar(TokenBuilder current, char next)
         {
             current.Append(next);
+            return TokenizerStates.Value;
+        }
+
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
+        {
+            current.Append(next);
             return TokenizerStates.Key;
         }
 
@@ -41,7 +48,7 @@ static class TokenizerStates
         public ITokenizerStateMachine PutQuote(TokenBuilder current, char next)
         {
             current.Append(next);
-            return TokenizerStates.QuotedKey;
+            return TokenizerStates.QuotedValue;
         }
 
         public ITokenizerStateMachine PutSpace(TokenBuilder current, char next)
@@ -58,6 +65,12 @@ static class TokenizerStates
         }
 
         public ITokenizerStateMachine PutChar(TokenBuilder current, char next)
+        {
+            current.Append(next);
+            return TokenizerStates.Key;
+        }
+
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
         {
             current.Append(next);
             return TokenizerStates.Key;
@@ -97,6 +110,12 @@ static class TokenizerStates
             return TokenizerStates.QuotedKey;
         }
 
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
+        {
+            current.Append(next);
+            return TokenizerStates.QuotedKey;
+        }
+
         public ITokenizerStateMachine PutKeyValueSeparator(TokenBuilder current, char next)
         {
             current.Append(next);
@@ -124,6 +143,12 @@ static class TokenizerStates
         }
 
         public ITokenizerStateMachine PutChar(TokenBuilder current, char next)
+        {
+            current.Append(next);
+            return TokenizerStates.Value;
+        }
+
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
         {
             current.Append(next);
             return TokenizerStates.Value;
@@ -160,6 +185,12 @@ static class TokenizerStates
             return TokenizerStates.Value;
         }
 
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
+        {
+            current.Append(next);
+            return TokenizerStates.Value;
+        }
+
         public ITokenizerStateMachine PutKeyValueSeparator(TokenBuilder current, char next)
         {
             current.Append(next);
@@ -187,6 +218,12 @@ static class TokenizerStates
         }
 
         public ITokenizerStateMachine PutChar(TokenBuilder current, char next)
+        {
+            current.Append(next);
+            return TokenizerStates.QuotedValue;
+        }
+
+        public ITokenizerStateMachine PutKeyPrefix(TokenBuilder current, char next)
         {
             current.Append(next);
             return TokenizerStates.QuotedValue;

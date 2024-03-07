@@ -26,6 +26,8 @@ public static class Parser
                 state = state.PutKeyValueSeparator(current, next);
             else if (next == '"')
                 state = state.PutQuote(current, next);
+            else if (next == '-')
+                state = state.PutKeyPrefix(current, next);
             else 
                 state = state.PutChar(current, next);
 
