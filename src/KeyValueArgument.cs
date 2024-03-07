@@ -2,7 +2,19 @@ namespace CommandParser;
 
 public class KeyValueArgument
 {
-    public KeyValueArgument(string key, IReadOnlyCollection<string>? values)
+    public static KeyValueArgument Create(string key, IReadOnlyCollection<string>? values)
+    {
+        if (!key.StartsWith("-"))
+            throw new FormatException("key should start with key prefix (-)");
+        return new KeyValueArgument(key, values);
+    }
+
+    public static KeyValueArgument CreateWithoutValidation(string key, IReadOnlyCollection<string>? values)
+    {
+        return new KeyValueArgument(key, values);
+    }
+
+    private KeyValueArgument(string key, IReadOnlyCollection<string>? values)
     {
         Key = key;
         Values = values;
@@ -91,7 +103,7 @@ public class ArgumentBuilder
             _values.CopyTo(valuesCopy);
         }
         
-        _q.Enqueue(new KeyValueArgument(Key, valuesCopy));
+        _q.Enqueue(KeyValueArgument.CreateWithoutValidation(Key, valuesCopy));
         Clear();
     }
 

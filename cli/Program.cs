@@ -19,8 +19,11 @@ foreach (var arg in result)
 {
     Console.WriteLine($"#{num}");
     Console.WriteLine($"key: {arg.Key}");
-    if (arg.Value != null)
-        Console.WriteLine($"value: {arg.Value}");
+    if (arg.Values != null)
+    {
+        foreach (var v in arg.Values)
+            Console.WriteLine($"value: {v}");
+    }
     Console.WriteLine();
     num++;
 }

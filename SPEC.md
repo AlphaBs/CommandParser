@@ -74,9 +74,8 @@ value
 
 key 와 values 를 가지는 순서쌍이다.
 
-key 는 빈 문자열이 될 수 있으나 null 을 허용하지 않는다.
+key 는 null 을 허용하지 않는다.
 values 는 value 의 목록이다. values 는 null, 빈 목록을 허용한다.
-key 가 공백 문자열이면서 value 가 null 인 argument 는 존재하지 않는다.
 
 key-value 형태를 가지는 단어는 하나의 argument 으로 만들어진다.
 key 는 그대로 가지고 values 에는 value 하나의 원소만 가지는 목록으로 순서쌍을 만든다.

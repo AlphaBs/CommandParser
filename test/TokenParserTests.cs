@@ -5,7 +5,7 @@ public class TokenParserTests
     private static void assert((TokenType, string)[] input, (string, string[]?)[] expected)
     {
         var inputTokens = input.Select(tuple => new Token(tuple.Item1, tuple.Item2));
-        var expectedArgs = expected.Select(tuple => new KeyValueArgument(
+        var expectedArgs = expected.Select(tuple => KeyValueArgument.CreateWithoutValidation(
             key: tuple.Item1, 
             values: tuple.Item2)).ToArray();
         var result = Parser.ParseTokens(inputTokens).ToArray();
