@@ -2,25 +2,29 @@ namespace CommandParser;
 
 public class KeyValueArgument
 {
-    public static KeyValueArgument Create(string key, IEnumerable<string>? values)
+    public static KeyValueArgument Create(string key, string? value)
     {
-        if (!key.StartsWith("-"))
+        if (key != "" && !key.StartsWith("-"))
             throw new FormatException("key should start with key prefix (-)");
-        return new KeyValueArgument(key, values.Select(EscapeValue).ToArray());
+        return new KeyValueArgument(key, value);
     }
 
-    public static KeyValueArgument CreateWithoutValidation(string key, IReadOnlyCollection<string>? values)
+    public static KeyValueArgument CreateWithoutValidation(string key, string? value)
     {
-        return new KeyValueArgument(key, values);
+        return new KeyValueArgument(key, value);
     }
 
     public static string EscapeValue(string value)
     {
-        if (value.StartsWith("\"") && value.EndsWith("\""))
+        if (value == "")
+        {
+            return "\"\"";
+        }
+        else if (value.StartsWith("\"") && value.EndsWith("\""))
         {
             return value;
         }
-        else if (value.Any(c => char.IsWhiteSpace(c) || c == '=' || c =='-'))
+        else if (value.Any(c => char.IsWhiteSpace(c)))
         {
             return "\"" + value + "\"";
         }
@@ -30,66 +34,47 @@ public class KeyValueArgument
         }
     }
 
-    private KeyValueArgument(string key, IReadOnlyCollection<string>? values)
+    private KeyValueArgument(string key, string? value)
     {
         Key = key;
-        Values = values;
+        Value = value;
     }
 
     public string Key { get; } 
-    public IReadOnlyCollection<string>? Values { get; }
+    public string? Value { get; }
 
     public override string ToString()
     {
-        if (Key == "" && Values == null)
-            return "";
+        return ToString(true);
+    }
 
-        var quotedValues = Values?.Select(EscapeValue);
-        
-        if (Key == "")
-            return string.Join(" ", quotedValues);
-        else if (Values == null)
+    public string ToString(bool formatMode)
+    {
+        if (Key == "" && Value == null)
+            return "";
+        else if (Value == null)
             return Key;
-        else if (Values.Count == 0)
-            return Key + "=";
-        else if (Values.Count == 1)
-            return Key + "=" + quotedValues.First();
-        else 
-            return Key + " " + string.Join(" ", quotedValues);
+        else if (Key == "")
+            return Value;
+        else
+        {
+            if (formatMode)
+                return Key + "=" + EscapeValue(Value);
+            else
+                return Key + " " + EscapeValue(Value);
+        }
     }
 
     public override int GetHashCode()
     {
-        var hashcode = Key.GetHashCode();
-        if (Values != null)
-        {
-            foreach (var value in Values)
-            {
-                hashcode ^= value.GetHashCode();
-            }
-        }
-        return hashcode;
+        return Key.GetHashCode() ^ (Value ?? "").GetHashCode();
     }
 
     public override bool Equals(object obj)
     {
         if (obj is KeyValueArgument arg)
         {
-            if (this.Key != arg.Key)
-                return false;
-            
-            if (this.Values == null && arg.Values == null)
-            {
-                return true;
-            }
-            else if (this.Values != null && this.Values != null)
-            {
-                return this.Values.SequenceEqual(arg.Values);
-            }
-            else
-            {
-                return false;
-            }
+            return this.Key == arg.Key && this.Value == arg.Value;
         }
         else
         {
@@ -98,35 +83,22 @@ public class KeyValueArgument
     }
 }
 
-public class ArgumentBuilder
+public class KeyValueArgumentBuilder
 {
     private readonly Queue<KeyValueArgument> _q = new();
-    private readonly List<string> _values = new();
 
     public string Key { get; set; } = "";
-    public IEnumerable<string> Values => _values;
+    public string? Value { get; set; }
 
     public void Clear()
     {
         Key = "";
-        _values.Clear();
-    }
-
-    public void AddValue(string value)
-    {
-        _values.Add(value);
+        Value = null;
     }
 
     public void Complete()
-    {
-        string[]? valuesCopy = null;
-        if (_values.Count > 0)
-        {
-             valuesCopy = new string[_values.Count];
-            _values.CopyTo(valuesCopy);
-        }
-        
-        _q.Enqueue(KeyValueArgument.CreateWithoutValidation(Key, valuesCopy));
+    {   
+        _q.Enqueue(KeyValueArgument.CreateWithoutValidation(Key, Value));
         Clear();
     }
 

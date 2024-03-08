@@ -10,16 +10,15 @@ foreach (var arg in args)
 Console.WriteLine();
 
 Console.WriteLine("Parsed arguments: ");
-var result = Parser.ParseArguments(args).ToArray();
+var result = Parser.ParseToKeyValueArguments(args).ToArray();
 num = 1;
 foreach (var arg in result)
 {
     Console.WriteLine($"#{num}");
     Console.WriteLine($"key: {arg.Key}");
-    if (arg.Values != null)
+    if (arg.Value != null)
     {
-        foreach (var v in arg.Values)
-            Console.WriteLine($"value: {v}");
+        Console.WriteLine($"value: {arg.Value}");
     }
     Console.WriteLine();
     num++;

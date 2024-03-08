@@ -14,10 +14,11 @@ public class ArgumentStringBuilder
         if (string.IsNullOrEmpty(argstr))
             return;
 
-        var parsedArgs = Parser.ParseArgumentString(argstr);
-        foreach (var a in parsedArgs)
+        var parsedArgs = Parser.ParseToArguments(argstr);
+        var parsedKv = Parser.ParseToKeyValueArguments(parsedArgs);
+        foreach (var kv in parsedKv)
         {
-            _arguments.Add(a);
+            _arguments.Add(kv);
         }
 
         _sb.Append(argstr);

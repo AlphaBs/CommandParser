@@ -2,10 +2,10 @@ namespace CommandParser;
 
 public static class Parser
 {
-    public static IEnumerable<KeyValueArgument> ParseArguments(IEnumerable<string> args)
+    public static IEnumerable<KeyValueArgument> ParseToKeyValueArguments(IEnumerable<string> args)
     {
-        IArgumentStateMachine state = ArgumentStates.Init;
-        ArgumentBuilder current = new();
+        IParserStateMachine state = ParserStates.Init;
+        KeyValueArgumentBuilder current = new();
 
         foreach (var arg in args)
         {
@@ -20,70 +20,21 @@ public static class Parser
             yield return parsed;
     }
 
-    public static IEnumerable<KeyValueArgument> ParseArgumentString(IEnumerable<char> input)
+    public static IEnumerable<string> ParseToArguments(string input)
     {
-        var tokens = TokenizeArgumentString(input);
-        var args = ParseTokens(tokens);
-
-        foreach (var arg in args)
-        {
-            yield return arg;
-        }
-    }
-
-    public static IEnumerable<Token> TokenizeArgumentString(IEnumerable<char> input)
-    {
-        ITokenizerStateMachine state = TokenizerStates.Init;
-        TokenBuilder current = new();
-
-        foreach (char next in input)
-        {
-            if (char.IsWhiteSpace(next))
-                state = state.PutSpace(current, next);
-            else if (next == '=')
-                state = state.PutKeyValueSeparator(current, next);
-            else if (next == '"')
-                state = state.PutQuote(current, next);
-            else if (next == '-')
-                state = state.PutKeyPrefix(current, next);
-            else 
-                state = state.PutChar(current, next);
-
-            foreach (var token in current.PopTokens())
-                yield return token;
-        }
-
-        state.End(current);
-        foreach (var token in current.PopTokens())
-                yield return token;
-    }
-
-    public static IEnumerable<KeyValueArgument> ParseTokens(IEnumerable<Token> tokens)
-    {
-        IParserStateMachine state = ParserStates.Init;
+        IArgumentStateMachine state = ArgumentStates.Init;
         ArgumentBuilder current = new();
 
-        foreach (var next in tokens)
+        foreach (var c in input)
         {
-            switch (next.Type)
-            {
-                case TokenType.Key:
-                    state = state.PutKey(current, next.Value);
-                    break;
-                case TokenType.Value:
-                    state = state.PutValue(current, next.Value);
-                    break;
-                case TokenType.KeyValueSeparator:
-                    state = state.PutKeyValueSeparator(current, next.Value);
-                    break;
-            }
+            state = state.Put(current, c);
 
-            foreach (var arg in current.PopArguments())
-                yield return arg;
+            foreach (var parsed in current.PopArguments())
+                yield return parsed;
         }
 
         state.End(current);
-        foreach (var arg in current.PopArguments())
-            yield return arg;
+        foreach (var parsed in current.PopArguments())
+            yield return parsed;
     }
 }

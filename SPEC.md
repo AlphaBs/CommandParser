@@ -72,21 +72,9 @@ value
 
 ### Argument
 
-key 와 values 를 가지는 순서쌍이다.
+key 와 value 를 가지는 순서쌍이다.
 
 key 는 null 을 허용하지 않는다.
-values 는 value 의 목록이다. values 는 null, 빈 목록을 허용한다.
+value 는 null 과 빈 문자열 모두를 허용한다.
 
-key-value 형태를 가지는 단어는 하나의 argument 으로 만들어진다.
-key 는 그대로 가지고 values 에는 value 하나의 원소만 가지는 목록으로 순서쌍을 만든다.
-
-key 이후에 value 가 연속될 경우, 연속되는 value 모두 values 가 되어 순서쌍을 만든다.
-예시
-```
---key1 value1 value2 value3-> [("--key1", ["value1", "value2", "value3"])]
-```
-
-## TODO
-
-ParseArgumentString, ParseArguments
-ArgumentFormat
+key 이후에 value 가 연속될 경우, key 와 연속되는 하나의 value 가 argument 를 만든다.

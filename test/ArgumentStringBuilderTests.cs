@@ -26,12 +26,13 @@ public class ArgumentStringBuilderTests
         KeyValueArgument[] expected =
         [
             KeyValueArgument.CreateWithoutValidation("--key", null),
-            KeyValueArgument.CreateWithoutValidation("", ["value"]),
-            KeyValueArgument.CreateWithoutValidation("-a", ["b"]),
-            KeyValueArgument.CreateWithoutValidation("-c", ["d"]),
-            KeyValueArgument.CreateWithoutValidation("--key", ["value1", "value2"]),
-            KeyValueArgument.CreateWithoutValidation("-x", ["y"]),
-            KeyValueArgument.CreateWithoutValidation("", ["value3"]),
+            KeyValueArgument.CreateWithoutValidation("", "value"),
+            KeyValueArgument.CreateWithoutValidation("-a", "b"),
+            KeyValueArgument.CreateWithoutValidation("-c", "d"),
+            KeyValueArgument.CreateWithoutValidation("--key", "value1"),
+            KeyValueArgument.CreateWithoutValidation("", "value2"),
+            KeyValueArgument.CreateWithoutValidation("-x", "y"),
+            KeyValueArgument.CreateWithoutValidation("", "value3"),
         ];
         Assert.Equal(expected, builder.Arguments.ToArray());
     }
@@ -70,8 +71,8 @@ public class ArgumentStringBuilderTests
         KeyValueArgument[] expected = 
         [
             KeyValueArgument.CreateWithoutValidation("--key1", null),
-            KeyValueArgument.CreateWithoutValidation("--key1", ["b"]),
-            KeyValueArgument.CreateWithoutValidation("--key1", ["c", "d"]),
+            KeyValueArgument.CreateWithoutValidation("--key1", "b"),
+            KeyValueArgument.CreateWithoutValidation("--key1", "c"),
         ];
         Assert.Equal(expected, builder.Find("--key1"));
     }

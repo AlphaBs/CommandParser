@@ -1,105 +1,82 @@
+using System.Text;
+
 namespace CommandParser;
 
 interface IArgumentStateMachine
 {
-    IArgumentStateMachine Put(ArgumentBuilder current, string next);
     void End(ArgumentBuilder current);
+    IArgumentStateMachine Put(ArgumentBuilder current, char next);
 }
 
 static class ArgumentStates
 {
     public readonly static IArgumentStateMachine Init = new InitState();
-    public readonly static IArgumentStateMachine Key = new KeyState();
+    public readonly static IArgumentStateMachine Quoted = new QuotedState();
 
     class InitState : IArgumentStateMachine
-    {
-        public void End(ArgumentBuilder current)
-        {
-            
-        }
-
-        public IArgumentStateMachine Put(ArgumentBuilder current, string next)
-        {
-            if (next.StartsWith("-"))
-            {
-                var separatorIndex = next.IndexOf("=");
-                if (separatorIndex >= 0) // key=value
-                {
-                    var key = next.Substring(0, separatorIndex);
-                    var value = (separatorIndex < next.Length - 1) 
-                        ? next.Substring(separatorIndex + 1, next.Length - separatorIndex - 1)
-                        : "";
-                    
-                    current.Key = key;
-                    current.AddValue(value);
-                    current.Complete();
-                    return ArgumentStates.Init;
-                }
-                else // key
-                {
-                    current.Key = next;
-                    return ArgumentStates.Key;
-                }
-            }
-            else if (next == "=") // =
-            {
-                current.Key = "";
-                current.AddValue("");
-                current.Complete();
-                return ArgumentStates.Init;
-            }
-            else if (next.StartsWith("=")) // =value
-            {
-                current.Key = "";
-                current.AddValue(next.Substring(1));
-                return ArgumentStates.Key;
-            }
-            else // value
-            {
-                current.Key = "";
-                current.AddValue(next);
-                return ArgumentStates.Key;
-            }
-        }
-    }
-
-    class KeyState : IArgumentStateMachine
     {
         public void End(ArgumentBuilder current)
         {
             current.Complete();
         }
 
-        public IArgumentStateMachine Put(ArgumentBuilder current, string next)
+        public IArgumentStateMachine Put(ArgumentBuilder current, char next)
         {
-            if (next.StartsWith("-"))
+            if (char.IsWhiteSpace(next))
             {
                 current.Complete();
-
-                var separatorIndex = next.IndexOf("=");
-                if (separatorIndex >= 0) // key=value
-                {
-                    var key = next.Substring(0, separatorIndex);
-                    var value = (separatorIndex < next.Length - 1) 
-                        ? next.Substring(separatorIndex + 1, next.Length - separatorIndex - 1)
-                        : "";
-                    
-                    current.Key = key;
-                    current.AddValue(value);
-                    current.Complete();
-                    return ArgumentStates.Init;
-                }
-                else // key
-                {
-                    current.Key = next;
-                    return ArgumentStates.Key;
-                }
+                return ArgumentStates.Init;
             }
-            else // everything except key
+            else if (next == '"')
             {
-                current.AddValue(next);
-                return ArgumentStates.Key;
+                return ArgumentStates.Quoted;
+            }
+            else
+            {
+                current.Append(next);
+                return ArgumentStates.Init;
             }
         }
+    }
+
+    class QuotedState : IArgumentStateMachine
+    {
+        public void End(ArgumentBuilder current)
+        {
+            current.Complete();
+        }
+
+        public IArgumentStateMachine Put(ArgumentBuilder current, char next)
+        {
+            if (next == '"')
+            {
+                return ArgumentStates.Init;
+            }
+            else
+            {
+                current.Append(next);
+                return ArgumentStates.Quoted;
+            }
+        }
+    }
+}
+
+class ArgumentBuilder
+{
+    private readonly Queue<string> _q = new();
+    private readonly StringBuilder _sb = new();
+
+    public void Append(char c) => _sb.Append(c);
+
+    public void Complete()
+    {
+        _q.Enqueue(_sb.ToString());
+        _sb.Clear();
+    }
+
+    public IEnumerable<string> PopArguments()
+    {
+        while (_q.Any())
+            yield return _q.Dequeue();
     }
 }

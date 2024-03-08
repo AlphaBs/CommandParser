@@ -2,128 +2,80 @@ namespace CommandParser;
 
 interface IParserStateMachine
 {
-    IParserStateMachine PutKey(ArgumentBuilder current, string next);
-    IParserStateMachine PutValue(ArgumentBuilder current, string next);
-    IParserStateMachine PutKeyValueSeparator(ArgumentBuilder current, string next);
-    void End(ArgumentBuilder current);
+    IParserStateMachine Put(KeyValueArgumentBuilder current, string next);
+    void End(KeyValueArgumentBuilder current);
 }
 
 static class ParserStates
 {
     public readonly static IParserStateMachine Init = new InitState();
     public readonly static IParserStateMachine Key = new KeyState();
-    public readonly static IParserStateMachine KeyValueSeparator = new KeyValueSeparatorState();
-    public readonly static IParserStateMachine Value = new ValueState();
-    
-    class InitState : IParserStateMachine
-    {
-        public void End(ArgumentBuilder current)
-        {
-            
-        }
 
-        public IParserStateMachine PutKey(ArgumentBuilder current, string next)
+    public static IParserStateMachine PutKey(KeyValueArgumentBuilder current, string next)
+    {
+        var separatorIndex = next.IndexOf("=");
+        if (separatorIndex >= 0) // key=value
+        {
+            var key = next.Substring(0, separatorIndex);
+            var value = (separatorIndex < next.Length - 1)
+                ? next.Substring(separatorIndex + 1, next.Length - separatorIndex - 1)
+                : "";
+
+            current.Key = key;
+            current.Value = value;
+            current.Complete();
+            return ParserStates.Init;
+        }
+        else // key
         {
             current.Key = next;
             return ParserStates.Key;
         }
+    }
 
-        public IParserStateMachine PutKeyValueSeparator(ArgumentBuilder current, string next)
+    class InitState : IParserStateMachine
+    {
+        public void End(KeyValueArgumentBuilder current)
         {
-            return ParserStates.KeyValueSeparator;
+
         }
 
-        public IParserStateMachine PutValue(ArgumentBuilder current, string next)
+        public IParserStateMachine Put(KeyValueArgumentBuilder current, string next)
         {
-            current.AddValue(next);
-            return ParserStates.Value;
+            if (next.StartsWith("-")) // key
+            {
+                return PutKey(current, next);
+            }
+            else // value
+            {
+                current.Key = "";
+                current.Value = next;
+                current.Complete();
+                return ParserStates.Init;
+            }
         }
     }
 
     class KeyState : IParserStateMachine
     {
-        public void End(ArgumentBuilder current)
+        public void End(KeyValueArgumentBuilder current)
         {
             current.Complete();
         }
 
-        public IParserStateMachine PutKey(ArgumentBuilder current, string next)
+        public IParserStateMachine Put(KeyValueArgumentBuilder current, string next)
         {
-            current.Complete();
-            current.Key = next;
-            return ParserStates.Key;
-        }
-
-        public IParserStateMachine PutKeyValueSeparator(ArgumentBuilder current, string next)
-        {
-            return ParserStates.KeyValueSeparator;
-        }
-
-        public IParserStateMachine PutValue(ArgumentBuilder current, string next)
-        {
-            current.AddValue(next);
-            return ParserStates.Value;
-        }
-    }
-
-    class KeyValueSeparatorState : IParserStateMachine
-    {
-        public void End(ArgumentBuilder current)
-        {
-            current.AddValue("");
-            current.Complete();
-        }
-
-        public IParserStateMachine PutKey(ArgumentBuilder current, string next)
-        {
-            current.AddValue("");
-            current.Complete();
-            
-            current.Key = next;
-            return ParserStates.Key;
-        }
-
-        public IParserStateMachine PutKeyValueSeparator(ArgumentBuilder current, string next)
-        {
-            current.AddValue("");
-            current.Complete();
-
-            current.Key = "";
-            return ParserStates.KeyValueSeparator;
-        }
-
-        public IParserStateMachine PutValue(ArgumentBuilder current, string next)
-        {
-            current.AddValue(next);
-            current.Complete();
-            return ParserStates.Init;
-        }
-    }
-
-    class ValueState : IParserStateMachine
-    {
-        public void End(ArgumentBuilder current)
-        {
-            current.Complete();
-        }
-
-        public IParserStateMachine PutKey(ArgumentBuilder current, string next)
-        {
-            current.Complete();
-            current.Key = next;
-            return ParserStates.Key;
-        }
-
-        public IParserStateMachine PutKeyValueSeparator(ArgumentBuilder current, string next)
-        {
-            current.Complete();
-            return ParserStates.KeyValueSeparator;
-        }
-
-        public IParserStateMachine PutValue(ArgumentBuilder current, string next)
-        {
-            current.AddValue(next);
-            return ParserStates.Value;
+            if (next.StartsWith("-")) // key
+            {
+                current.Complete();
+                return PutKey(current, next);
+            }
+            else // value
+            {
+                current.Value = next;
+                current.Complete();
+                return ParserStates.Init;
+            }
         }
     }
 }
