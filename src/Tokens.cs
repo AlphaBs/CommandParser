@@ -3,7 +3,7 @@ using System.Text;
 namespace CommandParser;
 
 public enum TokenType { Key, Value, KeyValueSeparator }
-public record Token(TokenType Type, string Value);
+public record struct Token(TokenType Type, string Value);
 
 public class TokenBuilder
 {

@@ -2,9 +2,27 @@ namespace CommandParser;
 
 public static class Parser
 {
-    public static IEnumerable<KeyValueArgument> ParseArguments(IEnumerable<char> input)
+    public static IEnumerable<KeyValueArgument> ParseArguments(IEnumerable<string> args)
     {
-        var tokens = Tokenize(input);
+        IArgumentStateMachine state = ArgumentStates.Init;
+        ArgumentBuilder current = new();
+
+        foreach (var arg in args)
+        {
+            state = state.Put(current, arg);
+
+            foreach (var parsed in current.PopArguments())
+                yield return parsed;
+        }
+
+        state.End(current);
+        foreach (var parsed in current.PopArguments())
+            yield return parsed;
+    }
+
+    public static IEnumerable<KeyValueArgument> ParseArgumentString(IEnumerable<char> input)
+    {
+        var tokens = TokenizeArgumentString(input);
         var args = ParseTokens(tokens);
 
         foreach (var arg in args)
@@ -13,7 +31,7 @@ public static class Parser
         }
     }
 
-    public static IEnumerable<Token> Tokenize(IEnumerable<char> input)
+    public static IEnumerable<Token> TokenizeArgumentString(IEnumerable<char> input)
     {
         ITokenizerStateMachine state = TokenizerStates.Init;
         TokenBuilder current = new();

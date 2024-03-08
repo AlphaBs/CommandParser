@@ -5,15 +5,12 @@ int num = 1;
 foreach (var arg in args)
 {
     Console.WriteLine($"#{num}: {arg}");
+    num++;
 }
-Console.WriteLine();
-Console.WriteLine("Serialized input: ");
-var input = string.Join(" ", args);
-Console.WriteLine(input);
 Console.WriteLine();
 
 Console.WriteLine("Parsed arguments: ");
-var result = Parser.ParseArguments(input).ToArray();
+var result = Parser.ParseArguments(args).ToArray();
 num = 1;
 foreach (var arg in result)
 {

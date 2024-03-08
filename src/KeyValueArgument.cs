@@ -2,16 +2,32 @@ namespace CommandParser;
 
 public class KeyValueArgument
 {
-    public static KeyValueArgument Create(string key, IReadOnlyCollection<string>? values)
+    public static KeyValueArgument Create(string key, IEnumerable<string>? values)
     {
         if (!key.StartsWith("-"))
             throw new FormatException("key should start with key prefix (-)");
-        return new KeyValueArgument(key, values);
+        return new KeyValueArgument(key, values.Select(EscapeValue).ToArray());
     }
 
     public static KeyValueArgument CreateWithoutValidation(string key, IReadOnlyCollection<string>? values)
     {
         return new KeyValueArgument(key, values);
+    }
+
+    public static string EscapeValue(string value)
+    {
+        if (value.StartsWith("\"") && value.EndsWith("\""))
+        {
+            return value;
+        }
+        else if (value.Any(c => char.IsWhiteSpace(c) || c == '=' || c =='-'))
+        {
+            return "\"" + value + "\"";
+        }
+        else
+        {
+            return value;
+        }
     }
 
     private KeyValueArgument(string key, IReadOnlyCollection<string>? values)
@@ -25,14 +41,21 @@ public class KeyValueArgument
 
     public override string ToString()
     {
-        if (Values == null)
+        if (Key == "" && Values == null)
+            return "";
+
+        var quotedValues = Values?.Select(EscapeValue);
+        
+        if (Key == "")
+            return string.Join(" ", quotedValues);
+        else if (Values == null)
             return Key;
         else if (Values.Count == 0)
             return Key + "=";
         else if (Values.Count == 1)
-            return Key + "=" + Values.First();
+            return Key + "=" + quotedValues.First();
         else 
-            return Key + " " + string.Join(" ", Values);
+            return Key + " " + string.Join(" ", quotedValues);
     }
 
     public override int GetHashCode()

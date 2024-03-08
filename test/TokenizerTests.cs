@@ -5,7 +5,7 @@ public class TokenizerTests
     private static void assert(string input, (TokenType, string)[] expected)
     {
         var expectedTokens = expected.Select(tuple => new Token(tuple.Item1, tuple.Item2));
-        var result = Parser.Tokenize(input);
+        var result = Parser.TokenizeArgumentString(input);
         Assert.Equal(expectedTokens, result);
     }
 

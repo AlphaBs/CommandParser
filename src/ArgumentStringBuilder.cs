@@ -9,18 +9,18 @@ public class ArgumentStringBuilder
 
     public IEnumerable<KeyValueArgument> Arguments => _arguments;
 
-    public void Add(string args)
+    public void AddArgumentString(string argstr)
     {
-        if (string.IsNullOrEmpty(args))
+        if (string.IsNullOrEmpty(argstr))
             return;
 
-        var parsedArgs = Parser.ParseArguments(args);
+        var parsedArgs = Parser.ParseArgumentString(argstr);
         foreach (var a in parsedArgs)
         {
             _arguments.Add(a);
         }
 
-        _sb.Append(args);
+        _sb.Append(argstr);
         _sb.Append(" ");
     }
 
